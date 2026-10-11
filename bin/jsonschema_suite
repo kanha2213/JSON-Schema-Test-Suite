@@ -130,6 +130,32 @@ class SanityTests(unittest.TestCase):
         assert cls.remote_files, "Didn't find the remote files!"
         print(f"Found {len(cls.remote_files)} remote files")
 
+    def test_remote_ids_match_their_urls(self):
+        """
+        Root identifiers match the URLs where remote files are served.
+        """
+        intentional_mismatches = {
+            "different-id-ref-string.json",
+            "urn-ref-string.json",
+        }
+        for path in self.remote_files:
+            if path.name in intentional_mismatches:
+                continue
+
+            relative_path = path.relative_to(REMOTES_DIR)
+            identifier_key = (
+                "id" if relative_path.parts[0] in {"draft3", "draft4"}
+                else "$id"
+            )
+            remote = json.loads(path.read_text())
+            identifier = remote.get(identifier_key)
+            if identifier is None:
+                continue
+
+            url = url_for_path(path)
+            with self.subTest(path=path):
+                self.assertEqual(urljoin(url, identifier), url)
+
     def assertUnique(self, iterable):
         """
         Assert that the elements of an iterable are unique.

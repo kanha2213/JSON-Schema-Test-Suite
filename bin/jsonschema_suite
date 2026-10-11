@@ -664,6 +664,10 @@ def main(arguments):
         }
         json.dump(remotes, sys.stdout, indent=4, sort_keys=True)
     elif arguments.command == "dump_remotes":
+        if Path(arguments.out_dir).resolve() == REMOTES_DIR.resolve():
+            print(f"{arguments.out_dir} is where the remotes live. Aborting.")
+            sys.exit(1)
+
         if arguments.update:
             shutil.rmtree(arguments.out_dir, ignore_errors=True)
 
@@ -723,6 +727,7 @@ flatten.add_argument(
 )
 flatten.add_argument(
     "version",
+    type=Path,
     help="The directory containing the version to output",
 )
 
@@ -743,7 +748,7 @@ dump_remotes.add_argument(
 )
 dump_remotes.add_argument(
     "--out-dir",
-    default=REMOTES_DIR,
+    required=True,
     type=os.path.abspath,
     help="The output directory to create as the root of the file tree",
 )
